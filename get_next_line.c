@@ -6,7 +6,7 @@
 /*   By: lsilva-x <lsilva-x@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/12 16:04:59 by lsilva-x          #+#    #+#             */
-/*   Updated: 2024/11/12 19:31:18 by lsilva-x         ###   ########.fr       */
+/*   Updated: 2024/11/12 19:34:41 by lsilva-x         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,25 +23,15 @@ static int	gnl_update_buffer(char **buffer, char **line)
 	if ((*buffer)[i] == '\n')
 	{
 		(*buffer)[i] = '\0';
-		tmp_buffer = ft_strjoin(*line, *buffer);
-		if (!tmp_buffer)
-			return (-1);
-		free(*line);
-		*line = tmp_buffer;
+		*line = ft_strjoin(*line, *buffer);
 		tmp_buffer = ft_strdup(&(*buffer)[i + 1]);
-		if (!tmp_buffer)
-			return (-1);
 		free(*buffer);
 		*buffer = tmp_buffer;
 		return (1);
 	}
 	else if (*buffer && (*buffer)[i] == '\0')
 	{
-		tmp_buffer = ft_strjoin(*line, *buffer);
-		if (!tmp_buffer)
-			return (-1);
-		free(*line);
-		*line = tmp_buffer;
+		*line = ft_strjoin(*line, *buffer);
 		free(*buffer);
 		*buffer = NULL;
 		return (0);
@@ -64,25 +54,13 @@ static int	gnl_read_file(char **buffer, char **line, int fd)
 		heap[cnt] = '\0';
 		if (*buffer)
 		{
-			tmp_buffer = ft_strjoin(*buffer, heap);
-			if (!tmp_buffer)
-			{
-				free(heap);
-				return (-1);
-			}
-			free(*buffer);
-			*buffer = tmp_buffer;
+			tmp_buffer = *buffer;
+			*buffer = ft_strjoin(*buffer, heap);
+			free(tmp_buffer);
 		}
 		else
-		{
 			*buffer = ft_strdup(heap);
-			if (!*buffer)
-			{
-				free(heap);
-				return (-1);
-			}
-		}
-		if (gnl_update_buffer(buffer, line) == 1)
+		if (gnl_update_buffer(buffer, line))
 		{
 			free(heap);
 			return (1);
@@ -90,8 +68,6 @@ static int	gnl_read_file(char **buffer, char **line, int fd)
 		cnt = read(fd, heap, BUFFER_SIZE);
 	}
 	free(heap);
-	if (cnt == -1)
-		return (-1);
 	if (*buffer && **buffer != '\0')
 		return (gnl_update_buffer(buffer, line));
 	return (0);
@@ -103,13 +79,11 @@ char	*get_next_line(int fd)
 	char		*line;
 	int			cnt;
 
+	line = ft_strdup("");
 	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, buffer, 0) < 0)
 		return (NULL);
-	line = ft_strdup("");
-	if (!line)
-		return (NULL);
 	if (buffer)
-		if (gnl_update_buffer(&buffer, &line) == 1)
+		if (gnl_update_buffer(&buffer, &line))
 			return (line);
 	cnt = gnl_read_file(&buffer, &line, fd);
 	if (cnt == -1)
