@@ -5,12 +5,12 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: lsilva-x <lsilva-x@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/12 16:05:11 by lsilva-x          #+#    #+#             */
-/*   Updated: 2024/11/12 19:28:50 by lsilva-x         ###   ########.fr       */
+/*   Created: 2024/11/12 21:44:20 by lsilva-x          #+#    #+#             */
+/*   Updated: 2024/11/13 13:29:34 by lsilva-x         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "./get_next_line.h"
 
 size_t	ft_strlen(const char *s)
 {
@@ -22,14 +22,34 @@ size_t	ft_strlen(const char *s)
 	return (i);
 }
 
+char	*ft_strchr(const char *s, int c)
+{
+	int				i;
+	unsigned char	uc;
+
+	i = 0;
+	uc = (unsigned char)c;
+	if (!s)
+		return (0);
+	if (c == '\0')
+		return ((void *)0);
+	while (s[i] != '\0')
+	{
+		if (s[i] == uc)
+			return ((char *)&s[i]);
+		i++;
+	}
+	if (s[i] == uc)
+		return ((char *)&s[i]);
+	return ((void *)0);
+}
+
 size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 {
 	size_t	src_length;
 	size_t	index;
 
-	src_length = 0;
-	while (src[src_length])
-		src_length++;
+	src_length = ft_strlen(src);
 	index = 0;
 	if (size == 0)
 		return (src_length);
@@ -42,33 +62,31 @@ size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 	return (src_length);
 }
 
-char	*ft_strdup(const char *s)
+char	*ft_strjoin_gnl(char *buffer, char *line)
 {
-	int		str_length;
-	char	*str_p;
+	char	*str;
+	size_t	i;
+	size_t	j;
+	size_t	total_length;
 
-	str_length = ft_strlen(s);
-	str_p = (char *)malloc((str_length + 1) * sizeof(char));
-	if (!str_p)
-		return ((void *)0);
-	ft_strlcpy(str_p, s, str_length + 1);
-	return (str_p);
-}
-
-char	*ft_strjoin(char const *s1, char const *s2)
-{
-	size_t		length_s1;
-	size_t		length_s2;
-	char		*strjoin;
-
-	if (!s1 || !s2)
+	if (!buffer)
+	{
+		buffer = (char *)malloc(1 * sizeof(char));
+		buffer[0] = '\0';
+	}
+	if (!buffer || !line)
 		return (NULL);
-	length_s1 = ft_strlen(s1);
-	length_s2 = ft_strlen(s2);
-	strjoin = (char *)malloc((length_s1 + length_s2 + 1) * sizeof(char));
-	if (!strjoin)
+	total_length = ft_strlen(buffer) + ft_strlen(line) + 1;
+	str = (char *)malloc(total_length * sizeof(char));
+	if (!str)
 		return (NULL);
-	ft_strlcpy(strjoin, s1, length_s1 + 1);
-	ft_strlcpy(strjoin + length_s1, s2, length_s2 + 1);
-	return (strjoin);
+	i = -1;
+	j = 0;
+	while (buffer[++i] != '\0')
+		str[i] = buffer[i];
+	while (line[j] != '\0')
+		str[i++] = line[j++];
+	str[i] = '\0';
+	free(buffer);
+	return (str);
 }

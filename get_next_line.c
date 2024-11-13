@@ -5,98 +5,99 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: lsilva-x <lsilva-x@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/12 16:04:59 by lsilva-x          #+#    #+#             */
-/*   Updated: 2024/11/12 19:34:41 by lsilva-x         ###   ########.fr       */
+/*   Created: 2024/11/12 21:44:19 by lsilva-x          #+#    #+#             */
+/*   Updated: 2024/11/13 20:08:27 by lsilva-x         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./get_next_line.h"
 
-static int	gnl_update_buffer(char **buffer, char **line)
+char	*get_line(char *buffer, int fd)
 {
-	char	*tmp_buffer;
-	int		i;
-
-	i = 0;
-	while ((*buffer)[i] != '\n' && (*buffer)[i] != '\0')
-		i++;
-	if ((*buffer)[i] == '\n')
-	{
-		(*buffer)[i] = '\0';
-		*line = ft_strjoin(*line, *buffer);
-		tmp_buffer = ft_strdup(&(*buffer)[i + 1]);
-		free(*buffer);
-		*buffer = tmp_buffer;
-		return (1);
-	}
-	else if (*buffer && (*buffer)[i] == '\0')
-	{
-		*line = ft_strjoin(*line, *buffer);
-		free(*buffer);
-		*buffer = NULL;
-		return (0);
-	}
-	return (0);
-}
-
-static int	gnl_read_file(char **buffer, char **line, int fd)
-{
-	char	*heap;
-	char	*tmp_buffer;
+	char	*line;
 	int		cnt;
 
-	heap = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
-	if (!heap)
-		return (-1);
-	cnt = read(fd, heap, BUFFER_SIZE);
-	while (cnt > 0)
+	line = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
+	cnt = 1;
+	if (!line)
+		return (NULL);
+	while (!ft_strchr(buffer, '\n') && cnt != 0)
 	{
-		heap[cnt] = '\0';
-		if (*buffer)
+		cnt = read(fd, line, BUFFER_SIZE);
+		if (cnt == -1 || (cnt == 0 && !buffer))
 		{
-			tmp_buffer = *buffer;
-			*buffer = ft_strjoin(*buffer, heap);
-			free(tmp_buffer);
+			free(line);
+			return (NULL);
 		}
-		else
-			*buffer = ft_strdup(heap);
-		if (gnl_update_buffer(buffer, line))
-		{
-			free(heap);
-			return (1);
-		}
-		cnt = read(fd, heap, BUFFER_SIZE);
+		line[cnt] = '\0';
+		buffer = ft_strjoin_gnl(buffer, line);
 	}
-	free(heap);
-	if (*buffer && **buffer != '\0')
-		return (gnl_update_buffer(buffer, line));
-	return (0);
+	free(line);
+	return (buffer);
+}
+
+char	*get_content(char *line)
+{
+	size_t	line_size;
+	char	*content;
+
+	line_size = 0;
+	if (!line)
+		return (NULL);
+	while (line[line_size] != '\n' && line[line_size])
+		line_size++;
+	content = (char *)malloc((line_size + 2) * sizeof(char));
+	if (!content)
+		return (NULL);
+	line_size = 0;
+	while (line[line_size] != '\n' && line[line_size])
+	{
+		content[line_size] = line[line_size];
+		line_size++;
+	}
+	if (line[line_size] == '\n')
+		content[line_size] = '\n';
+	content[line_size + 1] = '\0';
+	return (content);
+}
+
+char	*get_rest(char *buffer)
+{
+	char	*rest;
+	int		s_line;
+	int		y;
+
+	s_line = 0;
+	y = 0;
+	while (buffer[s_line] != '\n' && buffer[s_line])
+		s_line++;
+	if (!buffer[s_line])
+	{
+		free(buffer);
+		return (NULL);
+	}
+	rest = (char *)malloc((ft_strlen(buffer) - s_line) * sizeof(char));
+	if (!rest)
+		return (NULL);
+	s_line++;
+	while (buffer[s_line])
+		rest[y++] = buffer[s_line++];
+	rest[y] = '\0';
+	free(buffer);
+	return (rest);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*buffer = NULL;
+	static char	*buffer;
 	char		*line;
-	int			cnt;
 
-	line = ft_strdup("");
-	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, buffer, 0) < 0)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (buffer)
-		if (gnl_update_buffer(&buffer, &line))
-			return (line);
-	cnt = gnl_read_file(&buffer, &line, fd);
-	if (cnt == -1)
-	{
-		free(line);
-		free(buffer);
-		buffer = NULL;
+	buffer = get_line(buffer, fd);
+	if (!buffer)
 		return (NULL);
-	}
-	if (*line == '\0')
-	{
-		free(line);
-		return (NULL);
-	}
+	line = get_content(buffer);
+	buffer = get_rest(buffer);
 	return (line);
 }
