@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lsilva-x <lsilva-x@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/16 12:26:24 by lsilva-x          #+#    #+#             */
-/*   Updated: 2024/11/16 17:14:17 by lsilva-x         ###   ########.fr       */
+/*   Created: 2024/11/16 17:46:58 by lsilva-x          #+#    #+#             */
+/*   Updated: 2024/11/16 18:07:47 by lsilva-x         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "./get_next_line.h"
+#include "./get_next_line_bonus.h"
 
 char	*gnl_rest(char *buffer)
 {
@@ -87,15 +87,15 @@ char	*gnl_content(int fd, char *buffer)
 
 char	*get_next_line(int fd)
 {
-	static char	*buffer;
+	static char	*buffer[MAX_FD];
 	char		*line;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE <= 0 || fd < 0 || fd > MAX_FD)
 		return (NULL);
-	buffer = gnl_content(fd, buffer);
-	if (!buffer)
+	buffer[fd] = gnl_content(fd, buffer[fd]);
+	if (!buffer[fd])
 		return (NULL);
-	line = gnl_line(buffer);
-	buffer = gnl_rest(buffer);
+	line = gnl_line(buffer[fd]);
+	buffer[fd] = gnl_rest(buffer[fd]);
 	return (line);
 }
